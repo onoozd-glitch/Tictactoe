@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+<style>
+ * { margin: 0; box-sizing: border-box; }
+ body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1a1a2e; font-family: 'Segoe UI', sans-serif; color: #eee; }
+ h1 { font-size: 2.5rem; margin-bottom: .5rem; background: linear-gradient(135deg, #e94560, #0f3460); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+ #status { font-size: 1.3rem; margin-bottom: 1.5rem; min-height: 2rem; transition: opacity .3s; }
+ #wrapper { display: flex; gap: 2.5rem; align-items: flex-start; }
+ .board { display: grid; grid-template-columns: repeat(3, 110px); gap: 8px; }
+ .cell { width: 110px; height: 110px; background: #16213e; border: 2px solid #0f3460; border-radius: 12px; font-size: 2.8rem; font-weight: 700; cursor: pointer; transition: transform .15s, background .2s; display: flex; align-items: center; justify-content: center; }
+ .cell:hover:not(.taken) { background: #1a1a40; transform: scale(1.05); }
+ .cell.taken { cursor: default; }
+ .cell.X { color: #e94560; }
+ .cell.O { color: #00d2ff; }
+ .cell.win { animation: pop .5s ease; background: #0f3460; }
+ @keyframes pop { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+ @keyframes fadeIn { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: scale(1); } }
+ .cell.placed { animation: fadeIn .25s ease; }
+ #setup { text-align: center; }
+ #setup input { padding: .5rem .8rem; font-size: 1rem; border: 2px solid #0f3460; border-radius: 8px; background: #16213e; color: #eee; margin: .3rem; width: 180px; }
+ #setup input::placeholder { color: #666; }
+ .btn { margin-top: 1rem; padding: .7rem 2rem; font-size: 1.1rem; border: none; border-radius: 8px; background: linear-gradient(135deg, #e94560, #0f3460); color: #fff; cursor: pointer; transition: transform .2s, opacity .2s; }
+ .btn:hover { transform: scale(1.05); opacity: .9; }
+ .hidden { display: none; }
+ .leaderboard { background: #16213e; border: 2px solid #0f3460; border-radius: 12px; padding: 1.2rem 1.5rem; min-width: 180px; }
+ .leaderboard h2 { font-size: 1.1rem; margin-bottom: 1rem; text-align: center; color: #e94560; }
+ .lb-row { display: flex; justify-content: space-between; padding: .4rem 0; border-bottom: 1px solid #0f3460; font-size: .95rem; }
+ .lb-row:last-child { border-bottom: none; }
+ .lb-label { opacity: .7; }
+ .lb-val { font-weight: 700; }
+ .lb-val.X { color: #e94560; }
+ .lb-val.O { color: #00d2ff; }
+ .lb-val.draw { color: #aaa; }
+</style>
+</head>
+<body>
+<h1>Tic Tac Toe</h1>
+<div id="setup">
+ <div><input id="nameX" placeholder="Player X name" /></div>
+ <div><input id="nameO" placeholder="Player O name" /></div>
+ <button class="btn" id="startBtn">Start Game</button>
+</div>
+<div id="game" class="hidden">
+ <div id="status"></div>
+ <div id="wrapper">
+   <div class="board" id="board"></div>
+   <div class="leaderboard">
+     <h2>🏆 Leaderboard</h2>
+     <div class="lb-row"><span class="lb-label" id="lbNameX">X</span><span class="lb-val X" id="lbX">0</span></div>
+     <div class="lb-row"><span class="lb-label" id="lbNameO">O</span><span class="lb-val O" id="lbO">0</span></div>
+     <div class="lb-row"><span class="lb-label">Draws</span><span class="lb-val draw" id="lbD">0</span></div>
+   </div>
+ </div>
+ <button class="btn" id="reset">New Game</button>
+</div>
+<script>
+const board = document.getElementById('board'), status = document.getElementById('status');
+const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+let cells, state, turn, over, names = {}, score = { X: 0, O: 0, D: 0 };
+
+function nm(t) { return `${names[t]} (${t})`; }
+
+function updateLB() {
+ document.getElementById('lbX').textContent = score.X;
+ document.getElementById('lbO').textContent = score.O;
+ document.getElementById('lbD').textContent = score.D;
+}
+
+document.getElementById('startBtn').addEventListener('click', () => {
+ names.X = document.getElementById('nameX').value.trim() || 'Player 1';
+ names.O = document.getElementById('nameO').value.trim() || 'Player 2';
+ document.getElementById('lbNameX').textContent = names.X;
+ document.getElementById('lbNameO').textContent = names.O;
+ document.getElementById('setup').classList.add('hidden');
+ document.getElementById('game').classList.remove('hidden');
+ score = { X: 0, O: 0, D: 0 };
+ updateLB();
+ init();
+});
+
+function init() {
+ board.innerHTML = '';
+ state = Array(9).fill('');
+ turn = 'X'; over = false;
+ status.textContent = `${nm('X')}'s turn`;
+ cells = Array.from({length: 9}, (_, i) => {
+   const c = document.createElement('div');
+   c.className = 'cell';
+   c.addEventListener('click', () => play(i));
+   board.appendChild(c);
+   return c;
+ });
+}
+
+function play(i) {
+ if (over || state[i]) return;
+ state[i] = turn;
+ cells[i].textContent = turn;
+ cells[i].classList.add('taken', 'placed', turn);
+ const w = wins.find(l => l.every(j => state[j] === turn));
+ if (w) {
+   over = true;
+   w.forEach(j => cells[j].classList.add('win'));
+   status.textContent = `${nm(turn)} wins! 🎉`;
+   score[turn]++;
+   updateLB();
+ } else if (state.every(Boolean)) {
+   over = true;
+   status.textContent = "It's a draw!";
+   score.D++;
+   updateLB();
+ } else {
+   turn = turn === 'X' ? 'O' : 'X';
+   status.textContent = `${nm(turn)}'s turn`;
+ }
+}
+
+document.getElementById('reset').addEventListener('click', init);
+</script>
+</body>
+</html>
