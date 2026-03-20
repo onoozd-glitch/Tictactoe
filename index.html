@@ -1,125 +1,216 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tic Tac Toe</title>
-<style>
- * { margin: 0; box-sizing: border-box; }
- body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1a1a2e; font-family: 'Segoe UI', sans-serif; color: #eee; }
- h1 { font-size: 2.5rem; margin-bottom: .5rem; background: linear-gradient(135deg, #e94560, #0f3460); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
- #status { font-size: 1.3rem; margin-bottom: 1.5rem; min-height: 2rem; transition: opacity .3s; }
- #wrapper { display: flex; gap: 2.5rem; align-items: flex-start; }
- .board { display: grid; grid-template-columns: repeat(3, 110px); gap: 8px; }
- .cell { width: 110px; height: 110px; background: #16213e; border: 2px solid #0f3460; border-radius: 12px; font-size: 2.8rem; font-weight: 700; cursor: pointer; transition: transform .15s, background .2s; display: flex; align-items: center; justify-content: center; }
- .cell:hover:not(.taken) { background: #1a1a40; transform: scale(1.05); }
- .cell.taken { cursor: default; }
- .cell.X { color: #e94560; }
- .cell.O { color: #00d2ff; }
- .cell.win { animation: pop .5s ease; background: #0f3460; }
- @keyframes pop { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
- @keyframes fadeIn { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: scale(1); } }
- .cell.placed { animation: fadeIn .25s ease; }
- #setup { text-align: center; }
- #setup input { padding: .5rem .8rem; font-size: 1rem; border: 2px solid #0f3460; border-radius: 8px; background: #16213e; color: #eee; margin: .3rem; width: 180px; }
- #setup input::placeholder { color: #666; }
- .btn { margin-top: 1rem; padding: .7rem 2rem; font-size: 1.1rem; border: none; border-radius: 8px; background: linear-gradient(135deg, #e94560, #0f3460); color: #fff; cursor: pointer; transition: transform .2s, opacity .2s; }
- .btn:hover { transform: scale(1.05); opacity: .9; }
- .hidden { display: none; }
- .leaderboard { background: #16213e; border: 2px solid #0f3460; border-radius: 12px; padding: 1.2rem 1.5rem; min-width: 180px; }
- .leaderboard h2 { font-size: 1.1rem; margin-bottom: 1rem; text-align: center; color: #e94560; }
- .lb-row { display: flex; justify-content: space-between; padding: .4rem 0; border-bottom: 1px solid #0f3460; font-size: .95rem; }
- .lb-row:last-child { border-bottom: none; }
- .lb-label { opacity: .7; }
- .lb-val { font-weight: 700; }
- .lb-val.X { color: #e94560; }
- .lb-val.O { color: #00d2ff; }
- .lb-val.draw { color: #aaa; }
-</style>
-</head>
-<body>
-<h1>Tic Tac Toe</h1>
-<div id="setup">
- <div><input id="nameX" placeholder="Player X name" /></div>
- <div><input id="nameO" placeholder="Player O name" /></div>
- <button class="btn" id="startBtn">Start Game</button>
-</div>
-<div id="game" class="hidden">
- <div id="status"></div>
- <div id="wrapper">
-   <div class="board" id="board"></div>
-   <div class="leaderboard">
-     <h2>🏆 Leaderboard</h2>
-     <div class="lb-row"><span class="lb-label" id="lbNameX">X</span><span class="lb-val X" id="lbX">0</span></div>
-     <div class="lb-row"><span class="lb-label" id="lbNameO">O</span><span class="lb-val O" id="lbO">0</span></div>
-     <div class="lb-row"><span class="lb-label">Draws</span><span class="lb-val draw" id="lbD">0</span></div>
-   </div>
- </div>
- <button class="btn" id="reset">New Game</button>
-</div>
-<script>
-const board = document.getElementById('board'), status = document.getElementById('status');
-const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-let cells, state, turn, over, names = {}, score = { X: 0, O: 0, D: 0 };
 
-function nm(t) { return `${names[t]} (${t})`; }
+    1,   1: <!DOCTYPE html>
+    2,   2: <html lang="en">
+    3,   3: <head>
+    4,   4: <meta charset="UTF-8">
+    5,   5: <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    6,   6: <title>Tic Tac Toe</title>
+    7,   7: <style>
+    8,   8:   * { margin: 0; box-sizing: border-box; }
+    9,   9:   body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1a1a2e; font-family: 'Segoe UI', sans-serif; color: #eee; }
+   10,  10:   h1 { font-size: 2.5rem; margin-bottom: .5rem; background: linear-gradient(135deg, #e94560, #0f3460); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+   11,  11:   #status { font-size: 1.3rem; margin-bottom: 1.5rem; min-height: 2rem; transition: opacity .3s; }
+   12,  12:   #wrapper { display: flex; gap: 2.5rem; align-items: flex-start; }
+   13,  13:   .board { display: grid; grid-template-columns: repeat(3, 110px); gap: 8px; }
+   14,  14:   .cell { width: 110px; height: 110px; background: #16213e; border: 2px solid #0f3460; border-radius: 12px; font-size: 2.8rem; font-weight: 700; cursor: pointer; transition: transform .15s, background .2s; display: flex; align-items: center; justify-content: center; }
+   15,  15:   .cell:hover:not(.taken) { background: #1a1a40; transform: scale(1.05); }
+   16,  16:   .cell.taken { cursor: default; }
+   17,  17:   .cell.X { color: #e94560; }
+   18,  18:   .cell.O { color: #00d2ff; }
+   19,  19:   .cell.win { animation: pop .5s ease; background: #0f3460; }
+   20,  20:   @keyframes pop { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+   21,  21:   @keyframes fadeIn { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: scale(1); } }
+   22,  22:   .cell.placed { animation: fadeIn .25s ease; }
+   23,  23:   #setup { text-align: center; }
+   24,  24:   #setup input { padding: .5rem .8rem; font-size: 1rem; border: 2px solid #0f3460; border-radius: 8px; background: #16213e; color: #eee; margin: .3rem; width: 180px; }
+   25,  25:   #setup input::placeholder { color: #666; }
+   26,  26:   .btn { margin-top: 1rem; padding: .7rem 2rem; font-size: 1.1rem; border: none; border-radius: 8px; background: linear-gradient(135deg, #e94560, #0f3460); color: #fff; cursor: pointer; transition: transform .2s, opacity .2s; }
+   27,  27:   .btn:hover { transform: scale(1.05); opacity: .9; }
++       28:   .btn-sm { margin-top: .5rem; padding: .5rem 1.2rem; font-size: .9rem; }
+   28,  29:   .hidden { display: none; }
+-  29     :   .leaderboard { background: #16213e; border: 2px solid #0f3460; border-radius: 12px; padding: 1.2rem 1.5rem; min-width: 180px; }
++       30:   .symbol-pick { margin: .8rem 0; }
++       31:   .symbol-pick label { font-size: 1rem; margin-right: 1rem; cursor: pointer; padding: .4rem .8rem; border: 2px solid #0f3460; border-radius: 8px; transition: all .2s; }
++       32:   .symbol-pick input { display: none; }
++       33:   .symbol-pick input:checked + span { background: #0f3460; border-radius: 6px; padding: .3rem .6rem; }
++       34:   .symbol-pick .sx { color: #e94560; }
++       35:   .symbol-pick .so { color: #00d2ff; }
++       36:   .sidebar { display: flex; flex-direction: column; gap: 1rem; }
++       37:   .leaderboard { background: #16213e; border: 2px solid #0f3460; border-radius: 12px; padding: 1.2rem 1.5rem; min-width: 200px; }
+   30,  38:   .leaderboard h2 { font-size: 1.1rem; margin-bottom: 1rem; text-align: center; color: #e94560; }
+   31,  39:   .lb-row { display: flex; justify-content: space-between; padding: .4rem 0; border-bottom: 1px solid #0f3460; font-size: .95rem; }
+   32,  40:   .lb-row:last-child { border-bottom: none; }
+   33,  41:   .lb-label { opacity: .7; }
+   34,  42:   .lb-val { font-weight: 700; }
+   35,  43:   .lb-val.X { color: #e94560; }
+   36,  44:   .lb-val.O { color: #00d2ff; }
+   37,  45:   .lb-val.draw { color: #aaa; }
++       46:   .lb-section { font-size: .85rem; opacity: .5; margin-top: .6rem; margin-bottom: .2rem; text-align: center; }
++       47:   .past-matchup { background: #16213e; border: 1px solid #0f3460; border-radius: 8px; padding: .6rem .8rem; font-size: .85rem; margin-top: .3rem; }
++       48:   .past-matchup .pm-names { font-weight: 600; margin-bottom: .3rem; }
++       49:   .past-matchup .pm-score { opacity: .8; }
+   38,  50: </style>
+   39,  51: </head>
+   40,  52: <body>
+   41,  53: <h1>Tic Tac Toe</h1>
+   42,  54: <div id="setup">
+-  43     :   <div><input id="nameX" placeholder="Player X name" /></div>
+-  44     :   <div><input id="nameO" placeholder="Player O name" /></div>
++       55:   <div><input id="name1" placeholder="Player 1 name" /></div>
++       56:   <div class="symbol-pick">
++       57:     <label><input type="radio" name="sym" value="X" checked><span class="sx"> ✕ plays first</span></label>
++       58:     <label><input type="radio" name="sym" value="O"><span class="so"> ○ plays first</span></label>
++       59:   </div>
++       60:   <div><input id="name2" placeholder="Player 2 name" /></div>
+   45,  61:   <button class="btn" id="startBtn">Start Game</button>
+   46,  62: </div>
+   47,  63: <div id="game" class="hidden">
+   48,  64:   <div id="status"></div>
+   49,  65:   <div id="wrapper">
+   50,  66:     <div class="board" id="board"></div>
+-  51     :     <div class="leaderboard">
+-  52     :       <h2>🏆 Leaderboard</h2>
+-  53     :       <div class="lb-row"><span class="lb-label" id="lbNameX">X</span><span class="lb-val X" id="lbX">0</span></div>
+-  54     :       <div class="lb-row"><span class="lb-label" id="lbNameO">O</span><span class="lb-val O" id="lbO">0</span></div>
+-  55     :       <div class="lb-row"><span class="lb-label">Draws</span><span class="lb-val draw" id="lbD">0</span></div>
++       67:     <div class="sidebar">
++       68:       <div class="leaderboard">
++       69:         <h2>🏆 Current Match</h2>
++       70:         <div class="lb-row"><span class="lb-label" id="lbNameX">X</span><span class="lb-val X" id="lbX">0</span></div>
++       71:         <div class="lb-row"><span class="lb-label" id="lbNameO">O</span><span class="lb-val O" id="lbO">0</span></div>
++       72:         <div class="lb-row"><span class="lb-label">Draws</span><span class="lb-val draw" id="lbD">0</span></div>
++       73:         <div class="lb-section">All-time between these two</div>
++       74:         <div class="lb-row"><span class="lb-label" id="lbANameX">X</span><span class="lb-val X" id="lbAX">0</span></div>
++       75:         <div class="lb-row"><span class="lb-label" id="lbANameO">O</span><span class="lb-val O" id="lbAO">0</span></div>
++       76:         <div class="lb-row"><span class="lb-label">Draws</span><span class="lb-val draw" id="lbAD">0</span></div>
++       77:       </div>
++       78:       <div id="pastMatchups"></div>
+   56,  79:     </div>
+   57,  80:   </div>
+-  58     :   <button class="btn" id="reset">New Game</button>
++       81:   <div>
++       82:     <button class="btn" id="reset">New Round</button>
++       83:     <button class="btn btn-sm" id="newMatch">Change Players</button>
++       84:   </div>
+   59,  85: </div>
+   60,  86: <script>
+   61,  87: const board = document.getElementById('board'), status = document.getElementById('status');
+   62,  88: const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+-  63     : let cells, state, turn, over, names = {}, score = { X: 0, O: 0, D: 0 };
++       89: let cells, state, turn, over, players = {}, score = { X:0, O:0, D:0 };
+   64,  90: 
+-  65     : function nm(t) { return `${names[t]} (${t})`; }
++       91: function nm(t) { return `${players[t]} (${t})`; }
++       92: function matchKey(a, b) { return [a,b].sort().join(' vs ').toLowerCase(); }
+   66,  93: 
++       94: function getAllScores() {
++       95:   return JSON.parse(localStorage.getItem('ttt-scores') || '{}');
++       96: }
++       97: function saveAllScores(data) {
++       98:   localStorage.setItem('ttt-scores', JSON.stringify(data));
++       99: }
++      100: function getMatchScore(n1, n2) {
++      101:   return getAllScores()[matchKey(n1, n2)] || { scores: {}, names: [n1, n2] };
++      102: }
++      103: function saveMatchScore(n1, n2, winner) {
++      104:   const all = getAllScores(), key = matchKey(n1, n2);
++      105:   if (!all[key]) all[key] = { scores: {}, names: [n1, n2] };
++      106:   all[key].scores[winner] = (all[key].scores[winner] || 0) + 1;
++      107:   saveAllScores(all);
++      108: }
++      109: 
+   67, 110: function updateLB() {
+   68, 111:   document.getElementById('lbX').textContent = score.X;
+   69, 112:   document.getElementById('lbO').textContent = score.O;
+   70, 113:   document.getElementById('lbD').textContent = score.D;
++      114:   const m = getMatchScore(players.X, players.O);
++      115:   document.getElementById('lbAX').textContent = m.scores[players.X] || 0;
++      116:   document.getElementById('lbAO').textContent = m.scores[players.O] || 0;
++      117:   document.getElementById('lbAD').textContent = m.scores['draw'] || 0;
++      118:   document.getElementById('lbANameX').textContent = players.X;
++      119:   document.getElementById('lbANameO').textContent = players.O;
++      120:   showPastMatchups();
++      121: }
++      122: 
++      123: function showPastMatchups() {
++      124:   const all = getAllScores(), cur = matchKey(players.X, players.O);
++      125:   const el = document.getElementById('pastMatchups');
++      126:   const others = Object.entries(all).filter(([k]) => k !== cur);
++      127:   if (!others.length) { el.innerHTML = ''; return; }
++      128:   el.innerHTML = '<div class="lb-section">Other matchups</div>' +
++      129:     others.slice(-5).reverse().map(([, v]) => {
++      130:       const n = v.names;
++      131:       const s = n.map(p => `${p}: ${v.scores[p]||0}`).join(', ') + `, Draws: ${v.scores['draw']||0}`;
++      132:       return `<div class="past-matchup"><div class="pm-names">${n[0]} vs ${n[1]}</div><div class="pm-score">${s}</div></div>`;
++      133:     }).join('');
+   71, 134: }
+   72, 135: 
+   73, 136: document.getElementById('startBtn').addEventListener('click', () => {
+-  74     :   names.X = document.getElementById('nameX').value.trim() || 'Player 1';
+-  75     :   names.O = document.getElementById('nameO').value.trim() || 'Player 2';
+-  76     :   document.getElementById('lbNameX').textContent = names.X;
+-  77     :   document.getElementById('lbNameO').textContent = names.O;
++      137:   const n1 = document.getElementById('name1').value.trim() || 'Player 1';
++      138:   const n2 = document.getElementById('name2').value.trim() || 'Player 2';
++      139:   const sym = document.querySelector('input[name="sym"]:checked').value;
++      140:   players[sym] = n1;
++      141:   players[sym === 'X' ? 'O' : 'X'] = n2;
++      142:   document.getElementById('lbNameX').textContent = players.X;
++      143:   document.getElementById('lbNameO').textContent = players.O;
+   78, 144:   document.getElementById('setup').classList.add('hidden');
+   79, 145:   document.getElementById('game').classList.remove('hidden');
+-  80     :   score = { X: 0, O: 0, D: 0 };
++      146:   score = { X:0, O:0, D:0 };
+   81, 147:   updateLB();
+   82, 148:   init();
+   83, 149: });
+   84, 150: 
++      151: document.getElementById('newMatch').addEventListener('click', () => {
++      152:   document.getElementById('game').classList.add('hidden');
++      153:   document.getElementById('setup').classList.remove('hidden');
++      154: });
++      155: 
+   85, 156: function init() {
+   86, 157:   board.innerHTML = '';
+   87, 158:   state = Array(9).fill('');
+   88, 159:   turn = 'X'; over = false;
+   89, 160:   status.textContent = `${nm('X')}'s turn`;
+   90, 161:   cells = Array.from({length: 9}, (_, i) => {
+   91, 162:     const c = document.createElement('div');
+   92, 163:     c.className = 'cell';
+   93, 164:     c.addEventListener('click', () => play(i));
+   94, 165:     board.appendChild(c);
+   95, 166:     return c;
+   96, 167:   });
+   97, 168: }
+   98, 169: 
+   99, 170: function play(i) {
+  100, 171:   if (over || state[i]) return;
+  101, 172:   state[i] = turn;
+  102, 173:   cells[i].textContent = turn;
+  103, 174:   cells[i].classList.add('taken', 'placed', turn);
+  104, 175:   const w = wins.find(l => l.every(j => state[j] === turn));
+  105, 176:   if (w) {
+  106, 177:     over = true;
+  107, 178:     w.forEach(j => cells[j].classList.add('win'));
+  108, 179:     status.textContent = `${nm(turn)} wins! 🎉`;
+  109, 180:     score[turn]++;
++      181:     saveMatchScore(players.X, players.O, players[turn]);
+  110, 182:     updateLB();
+  111, 183:   } else if (state.every(Boolean)) {
+  112, 184:     over = true;
+  113, 185:     status.textContent = "It's a draw!";
+  114, 186:     score.D++;
++      187:     saveMatchScore(players.X, players.O, 'draw');
+  115, 188:     updateLB();
+  116, 189:   } else {
+  117, 190:     turn = turn === 'X' ? 'O' : 'X';
+  118, 191:     status.textContent = `${nm(turn)}'s turn`;
+  119, 192:   }
+  120, 193: }
+  121, 194: 
+  122, 195: document.getElementById('reset').addEventListener('click', init);
+  123, 196: </script>
+  124, 197: </body>
+  125, 198: </html>
 
-function updateLB() {
- document.getElementById('lbX').textContent = score.X;
- document.getElementById('lbO').textContent = score.O;
- document.getElementById('lbD').textContent = score.D;
-}
-
-document.getElementById('startBtn').addEventListener('click', () => {
- names.X = document.getElementById('nameX').value.trim() || 'Player 1';
- names.O = document.getElementById('nameO').value.trim() || 'Player 2';
- document.getElementById('lbNameX').textContent = names.X;
- document.getElementById('lbNameO').textContent = names.O;
- document.getElementById('setup').classList.add('hidden');
- document.getElementById('game').classList.remove('hidden');
- score = { X: 0, O: 0, D: 0 };
- updateLB();
- init();
-});
-
-function init() {
- board.innerHTML = '';
- state = Array(9).fill('');
- turn = 'X'; over = false;
- status.textContent = `${nm('X')}'s turn`;
- cells = Array.from({length: 9}, (_, i) => {
-   const c = document.createElement('div');
-   c.className = 'cell';
-   c.addEventListener('click', () => play(i));
-   board.appendChild(c);
-   return c;
- });
-}
-
-function play(i) {
- if (over || state[i]) return;
- state[i] = turn;
- cells[i].textContent = turn;
- cells[i].classList.add('taken', 'placed', turn);
- const w = wins.find(l => l.every(j => state[j] === turn));
- if (w) {
-   over = true;
-   w.forEach(j => cells[j].classList.add('win'));
-   status.textContent = `${nm(turn)} wins! 🎉`;
-   score[turn]++;
-   updateLB();
- } else if (state.every(Boolean)) {
-   over = true;
-   status.textContent = "It's a draw!";
-   score.D++;
-   updateLB();
- } else {
-   turn = turn === 'X' ? 'O' : 'X';
-   status.textContent = `${nm(turn)}'s turn`;
- }
-}
-
-document.getElementById('reset').addEventListener('click', init);
-</script>
-</body>
-</html>
